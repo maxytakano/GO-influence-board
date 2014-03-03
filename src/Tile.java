@@ -1,9 +1,8 @@
 import java.awt.*;
 
 public class Tile extends Rectangle {
-
-	final static int BLACK = 1;
-    final static int WHITE = 2;
+	private final static int BLACK = 1;
+    private final static int WHITE = 2;
    
     private final static int LEFT = 1;
     private final static int TOP = 2;

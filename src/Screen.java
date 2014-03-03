@@ -3,20 +3,38 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+/*
+ * Screen class for the board
+ * Actual model view controller architecture in the works
+ * !!TODO: - Move influence and AI calculations into new classes called influence and AI.
+ * 		   - Redo Side board capturing
+ * 		   - Implement a new class to check KO rules
+ * 		   - Game logic should all be in a new class called Board
+ */
 public class Screen extends JPanel implements MouseListener, KeyListener {
-    private String s = new String();
+	private final static int BLACK = 1;
+    private final static int WHITE = 2;
+    private final static int EMPTY = 0;
+	
+	private String s = new String();
+	/*
+	 * !!TODO: Make Getters for these instead of leaving them public
+	 */
     public static Tile[][] t;
     public static int[][] influence;
     public static int counter = 0;
-    int width, height;
+    
+    private static ArrayList<ArrayList<Tile>> masterList = new ArrayList<ArrayList<Tile>>();
     private static int turn = 1;
-    final static int BLACK = 1;
-    final static int WHITE = 2;
+    
     private static boolean dead = true;
     
+    // For undo button
     private int lastX = 0;
     private int lastY = 0;
     
+    // Influence Members
+    private int theX = 0, theY = 0;
     private int moveA[] = new int[400];
     private int moveB[] = new int[400];
     
@@ -26,8 +44,7 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
     private int moveX = 0, moveY = 0;
     
     
-    // A list to hold all the group lists
-    private static ArrayList<ArrayList<Tile>> masterList = new ArrayList<ArrayList<Tile>>();
+    
 
     public Screen() {
         createTiles();
@@ -39,42 +56,49 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
  
         // Background drawing
         g.setColor(Color.orange);         // Orange board
-        g.fillRect(0, 0, 1000, 1000);     // screen dimension sized
+        g.fillRect(0, 0, 1000, 1000);     // screen dimensions
         
-        // Tile drawing
+        // Draws each board tile on the screen
         for (int y = 0; y < t.length; y++) {
             for (int x = 0; x < t[0].length; x++) {
                 t[x][y].draw(g);
             }
         }
         
-        //board drawing
-        g.setColor(Color.red);          // Black Grid
-        for (int i = 1; i < 19; i++) {    // drawing the rectangles on the board
+        // Draws a black grid on the board
+        g.setColor(Color.red);          // Red Grid
+        
+        // drawing the rectangles on the board
+        for (int i = 1; i < 19; i++) {    
             for (int j = 1; j < 19; j++) {
                 g.drawRect(50 + (i * 36), 50 + (j * 36), 36, 36);
             }
         }
 
-        for (int i = 4; i < 20; i = i + 6) {       // drawing the start points
+        // drawing the start points
+        for (int i = 4; i < 20; i = i + 6) {       
             for (int j = 4; j < 20; j = j + 6) {
                 g.fillOval(45 + (i * 36), 45 + (j * 36), 10, 10);
             }
         }
-        for (int i = 1; i < 20; i++) {             // drawing the labels
+        
+        // drawing the labels
+        for (int i = 1; i < 20; i++) {             
             s = String.valueOf(i);
             g.drawString(s, 56, 54 + (i * 36));
             g.drawString(s, 46 + (i * 36), 66);
         }
 
         g.setColor(Color.black);
-        g.drawString(Integer.toString(turn), 650, 750);        
+        g.drawString("Current Turn: " + Integer.toString(turn), 650, 750);        
 
     }
 
-    // Tiles are the fundamental block that can change to pieces
+    /*
+     *  Creates Tile objects for the 19x19 Board plus reflectors outside
+     */
     public static void createTiles() {
-        //t = new Tile[19][19];
+        //t = new Tile[19][19];           // To be Implemented when reflector alternative is found
         t = new Tile[21][21];
         for (int y = 0; y < t.length; y++) {
             for (int x = 0; x < t[0].length; x++) {
@@ -83,23 +107,28 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
         }
     }
 
-    // increment turn and begin capture checking
+    /*
+     *  Increment turn and begin capture checking
+     */
     public static void incrementTurn() {
         captureCheck();
         turn++;
     }
 
-    // Every occupied tile is checked resetting all liberties after each tile check
+    /*
+     *  !!TODO: Needs capture function instead of if statements for each direction
+     *  This is where the magic happens... 
+     *  Every occupied tile is checked resetting all liberties after each tile check
+     */
     public static void captureCheck() {
         
         for (int y = 0; y < t.length - 1; y++) {
             for (int x = 0; x < t[0].length - 1; x++) {
-                //System.out.println(x + " " + y);
                 t[x][y].sideNeighborChange();
             }
         }
         
-        // populate the master list with group lists
+        // populate the master list with group lists this should be a function call
         for (int y = 0; y < t.length; y++) {
             for (int x = 0; x < t[0].length; x++) {
                 if (t[x][y].getStatus() != 0) {
@@ -111,9 +140,10 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
                     // else if stone to the right is the same
                     else if (t[x + 1][y].getStatus() == t[x][y].getStatus()) {
                         
-                        //System.out.println(t[x + 1][y].getStatus() + " right " + t[x][y].getStatus());
-                        for(ArrayList<Tile> l : masterList ) {           // for each group list in the master list...
-                            for(Tile z : l) {                            // for each tile in each group list...
+                    	// for each group list in the master list...
+                        for(ArrayList<Tile> l : masterList ) {     
+                        	// for each tile in each group list...
+                            for(Tile z : l) {                            
                                 
                                 if(t[x][y].getxID() == z.getxID() && t[x][y].getyID() == z.getyID()) {
                                     counter++;
@@ -137,7 +167,6 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
                         t[x][y].decrementLiberties();
                     }
                     else if (t[x - 1][y].getStatus() == t[x][y].getStatus()) {
-                        //System.out.println(t[x + 1][y].getStatus() + " left " + t[x][y].getStatus());
                         for(ArrayList<Tile> l : masterList ) {           // for each group list in the master list...
                             for(Tile z : l) {                            // for each tile in each group list...
                                 
@@ -163,7 +192,6 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
                         t[x][y].decrementLiberties();
                     }
                     else if (t[x][y + 1].getStatus() == t[x][y].getStatus()) {
-                        //System.out.println(t[x][y + 1].getStatus() + " down " + t[x][y].getStatus());
                         for(ArrayList<Tile> l : masterList ) {           // for each group list in the master list...
                             for(Tile z : l) {                            // for each tile in each group list...
                                 
@@ -189,7 +217,6 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
                         t[x][y].decrementLiberties();
                     }
                     else if (t[x][y - 1].getStatus() == t[x][y].getStatus()) {
-                        //System.out.println(t[x + 1][y].getStatus() + " up " + t[x][y].getStatus());
                         for(ArrayList<Tile> l : masterList ) {           // for each group list in the master list...
                             for(Tile z : l) {                            // for each tile in each group list...
                                 
@@ -237,29 +264,39 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
         
     }
     
-    // checks all neighbors of tile looking for an open tile
-    // Status 0 means its empty
+    /*
+     *  !!TODO: Change this to boolean should return true or false instead of 0 or 1 
+     *  Checks all neighbors of tile looking for an open tile signifying the piece is alive
+     *  Status of 0 means its empty 1 otherwise
+     */
     private static int checkLiberties(Tile z) {
-        if(t[z.getxID() + 1][z.getyID()].getStatus() == 0) {      // Check right
-            return 1;                                             // Return 1 to indicate a liberty
+    	// Check right
+        if(t[z.getxID() + 1][z.getyID()].getStatus() == EMPTY) {      
+            return 1;                                             // Return 1 to indicate a liberty 
         }
          
-        if(t[z.getxID() - 1][z.getyID()].getStatus() == 0) {      // Check left
+        // Check left
+        if(t[z.getxID() - 1][z.getyID()].getStatus() == EMPTY) {      
             return 1;
         }
         
-        if(t[z.getxID()][z.getyID() + 1].getStatus() == 0) {      // Check down 
+        // Check below
+        if(t[z.getxID()][z.getyID() + 1].getStatus() == EMPTY) {      
             return 1;
         }
         
-        if(t[z.getxID()][z.getyID() - 1].getStatus() == 0) {      // Check up
+        // Check above
+        if(t[z.getxID()][z.getyID() - 1].getStatus() == EMPTY) {      
             return 1; 
         }
         
-        return 0;                                                 // return 0 if no liberties were found
+        return 0;                                                 // Return 0 if no liberties were found
     }
 
-    
+    /*
+     * Creates a group of tile objects given the tile and its neighbors, 
+     * adds it to the list of groups
+     */
     private static void groupCreator(Tile tile, Tile tileNeighbor) {
         ArrayList<Tile> group = new ArrayList<Tile>();
         group.add(tile);
@@ -272,6 +309,9 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
         masterList.add(group);
     }
 
+    /*
+     * Looks for neighbors of the same color to add to a tiles group
+     */
     private static void checkTileNeighbors(Tile tileNeighbor, ArrayList<Tile> group, int lastX, int lastY) {
         int previousX, previousY;                   // so that back and forth recursion case doesn't happen
         boolean check = true;
@@ -339,21 +379,11 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
        
     }
 
- 
-    private int theX = 0, theY = 0;
-
+    /*
+     * !! TODO: Move influence calculations into a new class called Influence
+     * Assigns influence to the board for the newly places stone
+     */
     public void calculateInfluence() {
-        /*for (int y = 0; y < t.length; y++) {
-            for (int x = 0; x < t[0].length; x++) {
-                if(t[x][y].getStatus() == WHITE) {
-                    t[x][y].whiteInfluenceGiver();
-                }
-                else if(t[x][y].getStatus() == BLACK) {
-                    t[x][y].blackInfluenceGiver();
-                }
-            }
-        }*/
-        
         for (int i = 0; i < moveA.length; i++){
             theX = moveA[i];
             theY = moveB[i];
@@ -367,7 +397,11 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
     
    
     
-    // placing of the pieces where mouse is clicked
+    /*
+     * Places pieces when the mouse is clicked
+     * !!TODO: - Move AI to a new Class to be called from here returning the AI's Move
+     * 		   - Create a button that switches game between 2 player and Computer opponent moves
+     */
     @Override
     public void mouseClicked(MouseEvent e) {
 
@@ -376,7 +410,11 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
                 t[x][y].resetInfluence();
             }
         }
-        // AI option
+        /*
+         *  PROTOTYPE AI OPTION APPROX RATING: < 30 KYU
+         *  - Needs a seperate undo, that doesn't affect the turn counter
+         *  - Needs to access Screen data
+         */
         /*if(turn % 2 == 0) {
             
             for (int y = 1; y < t.length - 1; y++) {
@@ -437,7 +475,8 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
             for (int x = 0; x < t[0].length; x++) {
                 if (t[x][y].contains(e.getX(), e.getY())) {
                     if ((turn % 2) == 0) {
-                        t[x][y].placeWhite();         // need to implement tryPlaceWhite which only enters the method if there is not a piece there
+                    	// need to implement tryPlaceWhite which only enters the method if there is not a piece there
+                        t[x][y].placeWhite();         
                         moveA[turn] = x;
                         moveB[turn] = y;
                         calculateInfluence();
@@ -485,7 +524,10 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
     public void mouseExited(MouseEvent e) {
     }
 
-    
+    /*
+     * Undoes the last move setting influence and turn counter back one turn.
+     * !!TODO: Connect to board model when implemented and allow multiple undo's 
+     */
     private void undo() {
         t[lastX][lastY].isCaptured();
 
@@ -495,7 +537,7 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
                 }
             }
             
-            
+        turn--;    
         calculateInfluence();
         repaint();
 
@@ -507,17 +549,7 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
         int key = e.getKeyChar();
 
         if (key == 'd') {
-            t[lastX][lastY].isCaptured();
-
-            for (int y = 0; y < t.length; y++) {
-                for (int x = 0; x < t[0].length; x++) {
-                    t[x][y].resetInfluence();
-                }
-            }
-
-            turn--;
-            calculateInfluence();
-            repaint();
+        	undo();
         }
     }
 
