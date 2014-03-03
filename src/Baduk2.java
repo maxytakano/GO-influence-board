@@ -1,16 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class Baduk2 extends JFrame{
+public class Baduk2 extends JApplet{
     
-    public Baduk2() {
-        setTitle("Go UI");
+    public void init() {
+        setName("Go UI");
         setSize(875, 875);
-        setResizable(false);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //setResizable(false);
+        //setLocationRelativeTo(null);
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBackground(Color.orange);
-        
+     
         Screen screen = new Screen();
         
         screen.addKeyListener(screen);
@@ -21,7 +21,4 @@ public class Baduk2 extends JFrame{
         
     }
     
-    public static void main(String[] args) {
-       Baduk2 frame = new Baduk2();
-    }
 }

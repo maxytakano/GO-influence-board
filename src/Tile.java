@@ -1,39 +1,31 @@
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
 public class Tile extends Rectangle {
 
-    private int status;
-    private int xID;
-    private int yID;
-    private int liberties;
-    private int blackNeighbors, whiteNeighbors;
-    final static int BLACK = 1;
+	final static int BLACK = 1;
     final static int WHITE = 2;
-    private Screen board;
-    ////////////////////AI
-    //!! old
-    // private int whiteInfluence = 0;
-    // private int blackInfluence = 0;
-    //!! old
-    private double influence = 0;
-    private double nLen, eLen, sLen, wLen;
-    private int side = 0;
+   
     private final static int LEFT = 1;
     private final static int TOP = 2;
     private final static int RIGHT = 3;
     private final static int BOTTOM = 4;
+	
+    private int status;
+    private int xID;
+    private int yID;
+    private int liberties;
     
+    private double influence = 0;
+    private double nLen, eLen, sLen, wLen;
     
-
-    // Constructing the Tiles starting out as blank
+    private int side = 0;
+    
+    // Constructing the Tiles starting out as empty
     public Tile(int x, int y, int width, int height, int xid, int yid) {
-        setBounds(x, y, width, height); 
-   
-        xID = xid;
+    	xID = xid;
         yID = yid;
-        
+    	setBounds(x, y, width, height); 
+   
         if(xID == 0) {   // left side
             side = LEFT;
         }
@@ -47,10 +39,9 @@ public class Tile extends Rectangle {
             side = BOTTOM;
         }
         
-        liberties = 0;                  // Critical liberty count
+        liberties = 0;                  // The critical liberty count
         status = 0;
-        blackNeighbors = 0;
-        whiteNeighbors = 0;
+        
     }
 
     public boolean contains(int x, int y) {
@@ -64,20 +55,6 @@ public class Tile extends Rectangle {
         return true;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public int getxID() {
-        return xID;
-    }
-
-    public int getyID() {
-        return yID;
-    }
-
-    public void getNeighbors() {
-    }
 
     public void isCaptured() {
         status = 0;
@@ -91,10 +68,8 @@ public class Tile extends Rectangle {
         else {
             status = BLACK;            // and change the tile to a black piece
             liberties = 4;
-
-            //blackInfluence = 100;
             influence = 100;
-            //blackInfluenceGiver();
+        
         }
 
     }
@@ -173,9 +148,7 @@ public class Tile extends Rectangle {
         liberties = liberties + x;
     }
 
-    public void reset() {
-        liberties = 4;
-    }
+    
 
     /*
      * Assigns black influence values to all tiles
@@ -327,20 +300,17 @@ public class Tile extends Rectangle {
         
     }
 
-    public double getInfluence() {
-        return influence;
-    }
-
-    public void resetInfluence() {
-        influence = 0;
-    }
+    
    
     public void removePiece() {
         resetInfluence();
         status = 0;
     }
 
-    void reduceInfluence() {
+    /*
+     * Caps the Influence to max out at 100 or -100.
+     */
+    private void reduceInfluence() {
         if (influence > 100) {
             influence = 100;
         } else if (influence < -100) {
@@ -348,11 +318,12 @@ public class Tile extends Rectangle {
         }
     }
     
-    public int getSide() {
-        return side;
-    }
     
-    // side checking
+    
+    /*
+     *  If pieces are outside of the board, they "reflect" the color of the piece placed there
+     *  to create the edge and corner capturing effect
+     */
     public void sideNeighborChange() {
         // LEFT
         if(side == LEFT) {
@@ -395,5 +366,37 @@ public class Tile extends Rectangle {
             }
         }
     }
+    
+    public void reset() {
+        liberties = 4;
+    }
+    
+    public void resetInfluence() {
+        influence = 0;
+    }
+    
+    public double getInfluence() {
+        return influence;
+    }
+
+    
+    
+    public int getxID() {
+        return xID;
+    }
+
+    public int getyID() {
+        return yID;
+    }
+    
+    public int getStatus() {
+        return status;
+    }
+    
+    public int getSide() {
+        return side;
+    }
+
+    
     
 }

@@ -4,9 +4,7 @@ import java.awt.event.*;
 import java.util.*;
 
 public class Screen extends JPanel implements MouseListener, KeyListener {
-
     private String s = new String();
-    private String s2 = new String();
     public static Tile[][] t;
     public static int[][] influence;
     public static int counter = 0;
@@ -18,12 +16,15 @@ public class Screen extends JPanel implements MouseListener, KeyListener {
     
     private int lastX = 0;
     private int lastY = 0;
-    private double total = 0;
     
-    private double pastTotal = 10000;
-    private int moveX = 0, moveY = 0;
     private int moveA[] = new int[400];
     private int moveB[] = new int[400];
+    
+    // AI Members
+    private double total = 0;
+    private double pastTotal = 10000;
+    private int moveX = 0, moveY = 0;
+    
     
     // A list to hold all the group lists
     private static ArrayList<ArrayList<Tile>> masterList = new ArrayList<ArrayList<Tile>>();
